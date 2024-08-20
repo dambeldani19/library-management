@@ -1,0 +1,282 @@
+syntax = "proto3";
+
+package go_grpc;
+
+import "pagination.proto";
+
+
+option go_package = "go-grpc/pb/library";
+
+
+// Category message
+message Category {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+}
+
+// Author message
+message Author {
+    int32 id = 1;
+    string name = 2;
+    string bio = 3;
+}
+
+// Book message
+message Book {
+    int32 id = 1;
+    string title = 2;
+    Author author = 3;  // Nested Author message
+    Category category = 4;  // Nested Category message
+    int32 publication_year = 5;
+    string description = 6;
+}
+
+// BookStock message
+message BookStock {
+    int32 id = 1;
+    Book book = 2;  // Nested Book message
+    int32 total_stock = 3;
+}
+
+message BookStockUpdate{
+    int32 book_id = 1;
+    int32 total_stock = 2;
+}
+
+// Borrower message
+message Borrower {
+    int32 id = 1;
+    string name = 2;
+    string email = 3;
+}
+
+// BorrowingTransaction message
+message BorrowingTransaction {
+    int32 id = 1;
+    Borrower borrower = 2;  // Nested Borrower message
+    Book book = 3;  // Nested Book message
+    string borrowed_at = 4;
+    string due_date = 5;
+    string returned_at = 6;
+    string status = 7; // 'borrowed', 'returned', 'overdue'
+}
+
+// ReturningTransaction message
+message ReturningTransaction {
+    int32 id = 1;
+    BorrowingTransaction borrowing_transaction = 2;  // Nested BorrowingTransaction message
+    string returned_at = 3;
+    float fine_amount = 4;
+}
+
+// Request and Response messages
+message BookRequest {
+    int32 id = 1;
+}
+
+message CreateBookRequest {
+    string title = 1;
+    int32 author_id = 2;  // Nested Author message
+    Category category = 3;  // Nested Category message
+    int32 publication_year = 4;
+    string description = 5;
+}
+
+message BookUpdateReq {
+    int32 id = 1;
+    string title = 2;
+    int32 publication_year = 3;
+    string description = 4;
+}
+
+
+message BookResponse {
+    Book data = 1;
+}
+
+message BooksResponse {
+    Pagination pagination = 1;
+    repeated Book data = 2;
+}
+
+message AuthorRequest {
+    int32 id = 1;
+}
+
+message AuthorResponse {
+    Author data = 1;
+}
+
+message AuthorsResponse {
+    Pagination pagination = 1;
+    repeated Author data = 2;
+}
+
+message IdRequest {
+    int32 id = 1;
+}
+
+message CategoryRequest {
+    optional int32 id = 1;
+    string name = 2;
+    string description = 3;
+}
+
+message CategoryResponse {
+    Category data = 1;
+}
+
+message CategoriesResponse {
+    Pagination pagination = 1;
+    repeated Category data = 2;
+}
+
+message BookStockRequest {
+    int32 book_id = 1;
+}
+
+message BookStockResponse {
+    BookStock data = 1;
+}
+
+message BorrowingTransactionRequest {
+    int32 id = 1;
+}
+
+message BorrowingTransactionResponse {
+    BorrowingTransaction data = 1;
+}
+
+message BorrowingTransactionsResponse {
+    repeated BorrowingTransaction data = 1;
+}
+
+message ReturningTransactionRequest {
+    int32 id = 1;
+}
+
+message ReturningTransactionResponse {
+    ReturningTransaction returning_transaction = 1;
+}
+
+message Empty {}
+
+message ParameterReq {
+     int64 page = 1;
+     int64 limit = 2;
+}
+
+message ReturnBookRequest {
+    int32 transaction_id = 1;
+    string returned_at = 2; 
+}
+
+message ReturnBookResponse {
+    bool success = 1; 
+    string message = 2; 
+}
+
+message UpdateBorrowingTransactionRequest {
+    int32 id = 1;  
+
+    int32 borrower_id = 2;  
+    int32 book_id = 3;      
+
+    string due_date = 4;  
+    string returned_at = 5; 
+
+    string status = 6;  
+}
+
+
+message CreateBorrowingTransactionRequest {
+    int32 book_id = 1;      
+    string borrowed_at = 2; 
+    string due_date = 3;     
+}
+
+message LoginRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message LoginResponse {
+    int32 id = 1;
+    string name = 2;
+    string token = 3;
+}
+
+message ResponseParamLogin {
+	int32 statusCode = 1;
+	string message = 2;
+	LoginResponse data = 3;
+}
+
+message RegisterUser {
+    string name = 1;
+    string email = 2;
+    string password = 3;
+}
+
+message ReturnSimpleResponse {
+    bool success = 1; 
+    string message = 2;
+}
+
+
+// gRPC Services
+
+// Auth Service
+service AuthService{
+    rpc Login(LoginRequest) returns(ResponseParamLogin);
+    rpc RegisterBorrower(RegisterUser) returns(ReturnSimpleResponse);
+    rpc RegisterAdmin(RegisterUser) returns(ReturnSimpleResponse);
+}
+
+
+// Book Service
+service BookService {
+    rpc GetBook(BookRequest) returns (BookResponse);
+    rpc ListBooks(ParameterReq) returns (BooksResponse);
+    rpc CreateBook(CreateBookRequest) returns (BookResponse);
+    rpc UpdateBook(BookUpdateReq) returns (BookResponse);
+    rpc DeleteBook(BookRequest) returns (Empty);
+}
+
+// Author Service
+service AuthorService {
+    rpc GetAuthor(IdRequest) returns (AuthorResponse);
+    rpc ListAuthors(ParameterReq) returns (AuthorsResponse);
+    rpc CreateAuthor(Author) returns (AuthorResponse);
+    rpc UpdateAuthor(Author) returns (AuthorResponse);
+    rpc DeleteAuthor(IdRequest) returns (Empty);
+}
+
+// Category Service
+service CategoryService {
+    rpc GetCategory(IdRequest) returns (CategoryResponse);
+    rpc ListCategories(ParameterReq) returns (CategoriesResponse);
+    rpc CreateCategory(CategoryRequest) returns (CategoryResponse);
+    rpc UpdateCategory(CategoryRequest) returns (CategoryResponse);
+    rpc DeleteCategory(IdRequest) returns (Empty);
+}
+
+// BookStock Service
+service BookStockService {
+    rpc GetBookStock(IdRequest) returns (BookStockResponse);
+    rpc UpdateBookStock(BookStockUpdate) returns (BookStockResponse);
+}
+
+// Borrowing Service
+service BorrowingService {
+    rpc GetBorrowingTransaction(IdRequest) returns (BorrowingTransactionResponse);
+    rpc ListBorrowingTransactions(Empty) returns (BorrowingTransactionsResponse);
+    rpc CreateBorrowingTransaction(CreateBorrowingTransactionRequest) returns (BorrowingTransactionResponse);
+    rpc UpdateBorrowingTransaction(UpdateBorrowingTransactionRequest) returns (BorrowingTransactionResponse);
+}
+
+// Returning Service
+service ReturningService {
+    rpc ReturnBook (ReturnBookRequest) returns (ReturnBookResponse);
+}
