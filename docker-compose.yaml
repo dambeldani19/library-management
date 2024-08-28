@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  library-management:
-    image: library-management
-    container_name: library-management
+  library-managemen:
+    image: library-managemen
+    container_name: library-managemen
     network_mode: "host"
